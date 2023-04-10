@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+
+set(DUMB_IS_SHARED @BUILD_SHARED_LIBS@)
+set(DUMB_HAS_ALDBM @BUILD_ALLEGRO4@)
+
+if(NOT DUMB_IS_SHARED)
+  include(CMakeFindDependencyMacro)
+  if(DUMB_HAS_ALDBM)
+    find_dependency(Allegro4)
+  endif()
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/dumb-targets.cmake")
+
+check_required_components(dumb)

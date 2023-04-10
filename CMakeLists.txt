@@ -12,12 +12,15 @@ include(CheckCCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-scripts)
 
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_EXAMPLES "Build example binaries" ON)
 option(BUILD_ALLEGRO4 "Build Allegro4 support" ON)
 
 cmake_host_system_information(RESULT HAVE_SSE QUERY "HAS_SSE")
 include(CMakeDependentOption)
 cmake_dependent_option(USE_SSE "Use SSE instructions" ON "HAVE_SSE" OFF)
+
+set(DUMB_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/dumb" CACHE STRING "Path to install CMake configs to.")
 
 function(check_and_add_c_compiler_flag flag flag_variable_to_add_to)
     string(TOUPPER "${flag}" check_name)
@@ -199,7 +202,9 @@ configure_file(
 add_library(dumb ${SOURCES})
 target_compile_definitions(dumb PRIVATE ${DUMB_DEFINITIONS})
 target_compile_options(dumb PRIVATE ${DUMB_COMPILE_OPTIONS})
-target_include_directories(dumb PUBLIC include)
+target_include_directories(dumb PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 set_target_properties(dumb PROPERTIES DEBUG_POSTFIX d)
 set_target_properties(dumb PROPERTIES VERSION ${DUMB_VERSION})
 set_target_properties(dumb PROPERTIES SOVERSION ${DUMB_VERSION_MAJOR})
@@ -213,7 +218,10 @@ if(BUILD_ALLEGRO4)
     set_target_properties(aldmb PROPERTIES SOVERSION ${DUMB_VERSION_MAJOR})
     list(APPEND DUMB_TARGETS aldmb)
     list(APPEND INSTALL_HEADERS include/aldumb.h)
-    target_include_directories(aldmb PUBLIC include ${ALLEGRO_INCLUDE_DIR})
+    target_include_directories(aldmb PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        ${ALLEGRO_INCLUDE_DIR})
     target_link_libraries(aldmb PRIVATE ${ALLEGRO_LIBRARIES} dumb)
 endif()
 
@@ -250,8 +258,36 @@ target_link_libraries(dumb PRIVATE ${MATH_LIBRARY})
 
 install(FILES ${PKG_CONFIG_FILE} DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(FILES ${INSTALL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+file(COPY ${INSTALL_HEADERS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include)
+
 install(TARGETS dumb ${DUMB_TARGETS}
+    EXPORT dumb-targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+export(EXPORT dumb-targets NAMESPACE dumb::)
+install(EXPORT dumb-targets DESTINATION "${DUMB_INSTALL_CMAKEDIR}" NAMESPACE dumb::)
+
+include(CMakePackageConfigHelpers)
+
+# Config for consuming the project from the build directory
+configure_package_config_file("${CMAKE_CURRENT_LIST_DIR}/cmake-scripts/dumb-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/dumb-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+)
+
+# Config for installation
+configure_package_config_file("${CMAKE_CURRENT_LIST_DIR}/cmake-scripts/dumb-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/install/dumb-config.cmake"
+  INSTALL_DESTINATION "${DUMB_INSTALL_CMAKEDIR}"
+)
+
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/dumb-config-version.cmake" COMPATIBILITY SameMinorVersion)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/install/dumb-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/dumb-config-version.cmake"
+  DESTINATION "${DUMB_INSTALL_CMAKEDIR}"
 )
