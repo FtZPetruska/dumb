@@ -205,17 +205,20 @@ target_compile_options(dumb PRIVATE ${DUMB_COMPILE_OPTIONS})
 target_include_directories(dumb PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-set_target_properties(dumb PROPERTIES DEBUG_POSTFIX d)
-set_target_properties(dumb PROPERTIES VERSION ${DUMB_VERSION})
-set_target_properties(dumb PROPERTIES SOVERSION ${DUMB_VERSION_MAJOR})
+set_target_properties(dumb PROPERTIES
+    DEBUG_POSTFIX d
+    VERSION ${DUMB_VERSION}
+    SOVERSION ${DUMB_VERSION_MAJOR})
 
-if(BUILD_ALLEGRO4)
+if(BUILD_ALLEGRO4 AND Allegro4_FOUND)
     add_library(aldmb ${ALLEGRO_SOURCES})
     target_compile_definitions(aldmb PRIVATE ${DUMB_DEFINITIONS})
     target_compile_options(aldmb PRIVATE ${DUMB_COMPILE_OPTIONS})
-    set_target_properties(aldmb PROPERTIES DEBUG_POSTFIX d)
-    set_target_properties(aldmb PROPERTIES VERSION ${DUMB_VERSION})
-    set_target_properties(aldmb PROPERTIES SOVERSION ${DUMB_VERSION_MAJOR})
+    set_target_properties(aldmb PROPERTIES
+        DEBUG_POSTFIX d
+        VERSION ${DUMB_VERSION}
+        SOVERSION ${DUMB_VERSION_MAJOR}
+    )
     list(APPEND DUMB_TARGETS aldmb)
     list(APPEND INSTALL_HEADERS include/aldumb.h)
     target_include_directories(aldmb PUBLIC
@@ -234,22 +237,20 @@ endif()
 
 if(BUILD_EXAMPLES)
     add_executable(dumbout examples/dumbout.c)
-    add_executable(dumbplay examples/dumbplay.c)
     target_compile_definitions(dumbout PRIVATE ${DUMB_DEFINITIONS})
     target_compile_options(dumbout PRIVATE ${DUMB_COMPILE_OPTIONS})
-    target_compile_definitions(dumbplay PRIVATE ${DUMB_DEFINITIONS})
-    target_compile_options(dumbplay PRIVATE ${DUMB_COMPILE_OPTIONS})
     target_include_directories(dumbout PRIVATE include)
-    target_include_directories(dumbplay PRIVATE include)
-    set_property(TARGET dumbout PROPERTY C_STANDARD 99)
-    set_property(TARGET dumbplay PROPERTY C_STANDARD 99)
-    if(MINGW)
-        target_link_libraries(dumbplay mingw32)
-    endif()
-
+    set_target_properties(dumbout PROPERTIES C_STANDARD 99)
     target_link_libraries(dumbout PRIVATE argtable2::argtable2 ${MATH_LIBRARY} dumb)
 
-    target_include_directories(dumbplay PRIVATE ${SDL2_INCLUDE_DIRS})
+    add_executable(dumbplay examples/dumbplay.c)
+    target_compile_definitions(dumbplay PRIVATE ${DUMB_DEFINITIONS})
+    target_compile_options(dumbplay PRIVATE ${DUMB_COMPILE_OPTIONS})
+    target_include_directories(dumbplay PRIVATE include ${SDL2_INCLUDE_DIRS})
+    set_target_properties(dumbplay PROPERTIES C_STANDARD 99)
+    if(MINGW)
+        target_link_libraries(dumbplay PRIVATE mingw32)
+    endif()
     target_link_libraries(dumbplay PRIVATE argtable2::argtable2 ${SDL2_LIBRARIES} dumb)
 
     list(APPEND DUMB_TARGETS "dumbout" "dumbplay")
