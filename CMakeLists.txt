@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
-project(libdumb C)
-include(GNUInstallDirs)
-include(CheckCCompilerFlag)
 
 # Bump major (== soversion) on API breakages
 set(DUMB_VERSION_MAJOR 2)
 set(DUMB_VERSION_MINOR 0)
-set(DUMB_VERSION ${DUMB_VERSION_MAJOR}.${DUMB_VERSION_MINOR})
+set(DUMB_VERSION_PATCH 3)
+set(DUMB_VERSION "${DUMB_VERSION_MAJOR}.${DUMB_VERSION_MINOR}.${DUMB_VERSION_PATCH}")
+
+project(libdumb LANGUAGES C VERSION ${DUMB_VERSION})
+include(GNUInstallDirs)
+include(CheckCCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-scripts)
 
