@@ -221,8 +221,15 @@ if(BUILD_ALLEGRO4)
     target_include_directories(aldmb PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        ${ALLEGRO_INCLUDE_DIR})
-    target_link_libraries(aldmb PRIVATE ${ALLEGRO_LIBRARIES} dumb)
+    )
+    target_link_libraries(aldmb PRIVATE Allegro4::Allegro4 dumb)
+
+    file(COPY "${CMAKE_CURRENT_LIST_DIR}/cmake-scripts/FindAllegro4.cmake"
+        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+    install(FILES "${CMAKE_CURRENT_LIST_DIR}/cmake-scripts/FindAllegro4.cmake"
+        DESTINATION "${DUMB_INSTALL_CMAKEDIR}"
+    )
 endif()
 
 if(BUILD_EXAMPLES)
@@ -240,11 +247,10 @@ if(BUILD_EXAMPLES)
         target_link_libraries(dumbplay mingw32)
     endif()
 
-    target_include_directories(dumbout PRIVATE ${ARGTABLE2_INCLUDE_DIR})
-    target_link_libraries(dumbout PRIVATE ${ARGTABLE2_LIBRARY} ${MATH_LIBRARY} dumb)
+    target_link_libraries(dumbout PRIVATE argtable2::argtable2 ${MATH_LIBRARY} dumb)
 
-    target_include_directories(dumbplay PRIVATE ${ARGTABLE2_INCLUDE_DIR} ${SDL2_INCLUDE_DIR})
-    target_link_libraries(dumbplay PRIVATE ${ARGTABLE2_LIBRARY} ${SDL2_LIBRARY} dumb)
+    target_include_directories(dumbplay PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(dumbplay PRIVATE argtable2::argtable2 ${SDL2_LIBRARIES} dumb)
 
     list(APPEND DUMB_TARGETS "dumbout" "dumbplay")
 endif()
