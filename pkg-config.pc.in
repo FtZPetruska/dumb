@@ -8,5 +8,5 @@ Description: DUMB is a module audio renderer library.
 Version: @DUMB_VERSION@
 URL: https://github.com/kode54/dumb/
 Libs: -L${libdir} -ldumb
-Libs.private: -lm
+Libs.private: @PC_MATH_LIBRARY@
 Cflags: -I${includedir} 

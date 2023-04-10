@@ -41,6 +41,15 @@ check_and_add_c_compiler_flag("-Zi" CMAKE_C_FLAGS_RELWITHDEBINFO)
 
 set(CMAKE_C_FLAGS_MINSIZEREL "-ffast-math -Os -DNDEBUG")
 
+find_library(HAVE_MATH_LIBRARY NAMES m)
+if(HAVE_MATH_LIBRARY)
+    set(MATH_LIBRARY m)
+    set(PC_MATH_LIBRARY "-l${MATH_LIBRARY}")
+else()
+    set(MATH_LIBRARY)
+    set(PC_MATH_LIBRARY)
+endif()
+
 if(USE_SSE)
     check_c_compiler_flag("-msse" "CC_HAS_MSSE")
     if(CC_HAS_MSSE)
@@ -197,7 +206,7 @@ if(BUILD_ALLEGRO4)
     list(APPEND DUMB_TARGETS aldmb)
     list(APPEND INSTALL_HEADERS include/aldumb.h)
     target_include_directories(aldmb PUBLIC ${ALLEGRO_INCLUDE_DIR})
-    target_link_libraries(aldmb ${ALLEGRO_LIBRARIES} dumb)
+    target_link_libraries(aldmb PRIVATE ${ALLEGRO_LIBRARIES} dumb)
 endif()
 
 if(BUILD_EXAMPLES)
@@ -210,10 +219,10 @@ if(BUILD_EXAMPLES)
     endif()
 
     target_include_directories(dumbout PRIVATE ${ARGTABLE2_INCLUDE_DIR})
-    target_link_libraries(dumbout ${ARGTABLE2_LIBRARY} m dumb)
+    target_link_libraries(dumbout PRIVATE ${ARGTABLE2_LIBRARY} ${MATH_LIBRARY} dumb)
 
     target_include_directories(dumbplay PRIVATE ${ARGTABLE2_INCLUDE_DIR} ${SDL2_INCLUDE_DIR})
-    target_link_libraries(dumbplay ${ARGTABLE2_LIBRARY} ${SDL2_LIBRARY} dumb)
+    target_link_libraries(dumbplay PRIVATE ${ARGTABLE2_LIBRARY} ${SDL2_LIBRARY} dumb)
 
     list(APPEND DUMB_TARGETS "dumbout" "dumbplay")
 endif()
@@ -223,7 +232,7 @@ IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_target_properties(dumb PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-target_link_libraries(dumb m)
+target_link_libraries(dumb PRIVATE ${MATH_LIBRARY})
 
 install(FILES ${PKG_CONFIG_FILE} DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(FILES ${INSTALL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
